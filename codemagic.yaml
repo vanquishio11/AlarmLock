@@ -11,27 +11,44 @@ workflows:
       - name: Install JS dependencies
         script: npm ci
 
-      - name: Install CocoaPods
+      - name: Install CocoaPods (must create xcworkspace)
         script: |
           cd ios
-          pod install
+          pod repo update
+          pod install --verbose
           cd ..
 
-      - name: Verify workspace
+      - name: Verify iOS folder contents
         script: |
-          ls ios
+          ls -la ios
+          ls -la ios/*.xcworkspace || true
+          ls -la ios/*.xcodeproj || true
 
-      - name: Build Simulator app (unsigned)
+      - name: Build Simulator (use workspace if present, else xcodeproj)
         script: |
-          xcodebuild \
-            -workspace "ios/AlarmLock.xcworkspace" \
-            -scheme "AlarmLock" \
-            -configuration Debug \
-            -sdk iphonesimulator \
-            -derivedDataPath build/ios-sim \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY=""
+          if [ -d "ios/AlarmLock.xcworkspace" ]; then
+            echo "Using workspace"
+            xcodebuild \
+              -workspace "ios/AlarmLock.xcworkspace" \
+              -scheme "AlarmLock" \
+              -configuration Debug \
+              -sdk iphonesimulator \
+              -derivedDataPath build/ios-sim \
+              CODE_SIGNING_ALLOWED=NO \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGN_IDENTITY=""
+          else
+            echo "Workspace missing, using xcodeproj"
+            xcodebuild \
+              -project "ios/AlarmLock.xcodeproj" \
+              -scheme "AlarmLock" \
+              -configuration Debug \
+              -sdk iphonesimulator \
+              -derivedDataPath build/ios-sim \
+              CODE_SIGNING_ALLOWED=NO \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGN_IDENTITY=""
+          fi
 
       - name: Zip .app
         script: |
@@ -40,3 +57,4 @@ workflows:
 
     artifacts:
       - build/AlarmLock-sim.app.zip
+      - /tmp/xcodebuild_logs/*.log
