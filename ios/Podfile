@@ -17,6 +17,9 @@ end
 target 'AlarmLock' do
   config = use_native_modules!
 
+  pod 'RNNotifications', :path => '../node_modules/react-native-notifications'
+
+
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.
