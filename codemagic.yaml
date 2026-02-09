@@ -1,27 +1,38 @@
 workflows:
-  ios_release:
-    name: iOS Release (IPA)
+  ios_archive_unsigned:
+    name: iOS Unsigned Archive (.xcarchive)
     max_build_duration: 90
     instance_type: mac_mini_m2
     environment:
       xcode: latest
       cocoapods: default
-      ios_signing:
-        distribution_type: ad_hoc
-        bundle_identifier: app.blueberry6519.moonstone9738
     scripts:
       - name: Install JS dependencies
         script: npm ci
+
       - name: Install CocoaPods
         script: |
           cd ios
           pod install
           cd ..
-      - name: Build IPA
+
+      - name: Create unsigned archive
         script: |
-          xcode-project build-ipa \
-            --workspace "ios/AlarmLock.xcworkspace" \
-            --scheme "AlarmLock"
+          xcodebuild \
+            -workspace "ios/AlarmLock.xcworkspace" \
+            -scheme "AlarmLock" \
+            -configuration Release \
+            -archivePath "build/AlarmLock.xcarchive" \
+            archive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""
+
+      - name: Zip archive
+        script: |
+          cd build
+          zip -r AlarmLock.xcarchive.zip AlarmLock.xcarchive
+
     artifacts:
-      - build/ios/ipa/*.ipa
+      - build/AlarmLock.xcarchive.zip
       - /tmp/xcodebuild_logs/*.log
