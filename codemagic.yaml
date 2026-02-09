@@ -11,49 +11,41 @@ workflows:
       - name: Install JS dependencies
         script: npm ci
 
-      - name: Install CocoaPods (verbose)
-        script: |
-          cd ios
-          pod install --verbose
-          cd ..
-
-      - name: Verify iOS outputs
-        script: |
-          ls -la ios
-          echo "Workspaces:"
-          ls -la ios/*.xcworkspace || true
-          echo "Projects:"
-          ls -la ios/*.xcodeproj || true
-
-      - name: Build Simulator (workspace if present, else project)
+      - name: Install CocoaPods (clean + verbose)
         script: |
           set -e
-          if [ -d "ios/AlarmLock.xcworkspace" ]; then
-            echo "Using workspace"
-            xcodebuild \
-              -workspace "ios/AlarmLock.xcworkspace" \
-              -scheme "AlarmLock" \
-              -configuration Debug \
-              -sdk iphonesimulator \
-              -derivedDataPath build/ios-sim \
-              CODE_SIGNING_ALLOWED=NO \
-              CODE_SIGNING_REQUIRED=NO \
-              CODE_SIGN_IDENTITY=""
-          else
-            echo "Workspace missing, using xcodeproj"
-            xcodebuild \
-              -project "ios/AlarmLock.xcodeproj" \
-              -scheme "AlarmLock" \
-              -configuration Debug \
-              -sdk iphonesimulator \
-              -derivedDataPath build/ios-sim \
-              CODE_SIGNING_ALLOWED=NO \
-              CODE_SIGNING_REQUIRED=NO \
-              CODE_SIGN_IDENTITY=""
-          fi
+          cd ios
+          rm -rf Pods Podfile.lock
+          pod deintegrate || true
+          pod install --repo-update --verbose
+          cd ..
+
+      - name: Verify Pods + Workspace exist
+        script: |
+          set -e
+          echo "=== ios folder ==="
+          ls -la ios
+          echo "=== workspaces ==="
+          ls -la ios/*.xcworkspace
+          echo "=== pods support files ==="
+          ls -la "ios/Pods/Target Support Files/Pods-AlarmLock"
+
+      - name: Build Simulator app (unsigned)
+        script: |
+          set -e
+          xcodebuild \
+            -workspace "ios/AlarmLock.xcworkspace" \
+            -scheme "AlarmLock" \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -derivedDataPath build/ios-sim \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""
 
       - name: Zip .app
         script: |
+          set -e
           cd build/ios-sim/Build/Products/Debug-iphonesimulator
           zip -r ../../../../AlarmLock-sim.app.zip AlarmLock.app
 
