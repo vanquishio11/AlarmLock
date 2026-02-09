@@ -6,35 +6,22 @@ workflows:
     environment:
       xcode: latest
       cocoapods: default
-
     scripts:
       - name: Install JS dependencies
         script: npm ci
 
-      - name: Install CocoaPods (clean + verbose)
+      - name: Install CocoaPods
         script: |
           set -e
           cd ios
-          rm -rf Pods Podfile.lock
-          pod deintegrate || true
-          pod install --repo-update --verbose
+          pod install --verbose
           cd ..
-
-      - name: Verify Pods + Workspace exist
-        script: |
-          set -e
-          echo "=== ios folder ==="
-          ls -la ios
-          echo "=== workspaces ==="
-          ls -la ios/*.xcworkspace
-          echo "=== pods support files ==="
-          ls -la "ios/Pods/Target Support Files/Pods-AlarmLock"
 
       - name: Build Simulator app (unsigned)
         script: |
           set -e
           xcodebuild \
-            -workspace "ios/AlarmLock.xcworkspace" \
+            -project "ios/AlarmLock.xcodeproj" \
             -scheme "AlarmLock" \
             -configuration Debug \
             -sdk iphonesimulator \
@@ -48,7 +35,6 @@ workflows:
           set -e
           cd build/ios-sim/Build/Products/Debug-iphonesimulator
           zip -r ../../../../AlarmLock-sim.app.zip AlarmLock.app
-
     artifacts:
       - build/AlarmLock-sim.app.zip
       - /tmp/xcodebuild_logs/*.log
