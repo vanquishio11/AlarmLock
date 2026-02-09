@@ -22,11 +22,15 @@ workflows:
             -workspace "ios/AlarmLock.xcworkspace" \
             -scheme "AlarmLock" \
             -configuration Release \
+            -destination "generic/platform=iOS" \
             -archivePath "build/AlarmLock.xcarchive" \
             archive \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY=""
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" \
+            SKIP_INSTALL=NO
+
 
       - name: Zip archive
         script: |
