@@ -11,21 +11,23 @@ workflows:
       - name: Install JS dependencies
         script: npm ci
 
-      - name: Install CocoaPods (must create xcworkspace)
+      - name: Install CocoaPods (verbose)
         script: |
           cd ios
-          pod repo update
           pod install --verbose
           cd ..
 
-      - name: Verify iOS folder contents
+      - name: Verify iOS outputs
         script: |
           ls -la ios
+          echo "Workspaces:"
           ls -la ios/*.xcworkspace || true
+          echo "Projects:"
           ls -la ios/*.xcodeproj || true
 
-      - name: Build Simulator (use workspace if present, else xcodeproj)
+      - name: Build Simulator (workspace if present, else project)
         script: |
+          set -e
           if [ -d "ios/AlarmLock.xcworkspace" ]; then
             echo "Using workspace"
             xcodebuild \
