@@ -6,6 +6,7 @@ workflows:
     environment:
       xcode: latest
       cocoapods: default
+
     scripts:
       - name: Install JS dependencies
         script: npm ci
@@ -13,13 +14,17 @@ workflows:
       - name: Install CocoaPods
         script: |
           cd ios
-          pod install || true
+          pod install
           cd ..
+
+      - name: Verify workspace
+        script: |
+          ls ios
 
       - name: Build Simulator app (unsigned)
         script: |
           xcodebuild \
-            -project "ios/AlarmLock.xcodeproj" \
+            -workspace "ios/AlarmLock.xcworkspace" \
             -scheme "AlarmLock" \
             -configuration Debug \
             -sdk iphonesimulator \
