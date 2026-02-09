@@ -8,7 +8,7 @@ workflows:
       cocoapods: default
       ios_signing:
         distribution_type: ad_hoc
-        bundle_identifier: com.lemon.alarmlock
+        bundle_identifier: app.blueberry6519.moonstone9738
     scripts:
       - name: Install JS dependencies
         script: npm ci
