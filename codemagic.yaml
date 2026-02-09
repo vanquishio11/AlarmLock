@@ -1,6 +1,6 @@
 workflows:
-  ios_archive_unsigned:
-    name: iOS Unsigned Archive (.xcarchive)
+  ios_sim_unsigned:
+    name: iOS Simulator Unsigned (.app)
     max_build_duration: 90
     instance_type: mac_mini_m2
     environment:
@@ -16,27 +16,22 @@ workflows:
           pod install
           cd ..
 
-      - name: Create unsigned archive
+      - name: Build Simulator app (unsigned)
         script: |
           xcodebuild \
             -workspace "ios/AlarmLock.xcworkspace" \
             -scheme "AlarmLock" \
-            -configuration Release \
-            -destination "generic/platform=iOS" \
-            -archivePath "build/AlarmLock.xcarchive" \
-            archive \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -derivedDataPath build/ios-sim \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            DEVELOPMENT_TEAM="" \
-            SKIP_INSTALL=NO
+            CODE_SIGN_IDENTITY=""
 
-
-      - name: Zip archive
+      - name: Zip .app
         script: |
-          cd build
-          zip -r AlarmLock.xcarchive.zip AlarmLock.xcarchive
+          cd build/ios-sim/Build/Products/Debug-iphonesimulator
+          zip -r ../../../../AlarmLock-sim.app.zip AlarmLock.app
 
     artifacts:
-      - build/AlarmLock.xcarchive.zip
-      - /tmp/xcodebuild_logs/*.log
+      - build/AlarmLock-sim.app.zip
